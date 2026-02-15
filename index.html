@@ -48,9 +48,20 @@
         .sun-times { display: flex; justify-content: space-around; background: rgba(241, 196, 15, 0.1); margin: 10px 0; padding: 10px; border-radius: 15px; font-size: 0.8rem; }
         .info-pill { background: var(--pill-bg); padding: 8px; border-radius: 12px; font-size: 0.75rem; margin-top: 5px; }
         .hidden { display: none !important; }
-        select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; margin: 10px 0; background: var(--card-bg); color: var(--text-main); }
         
-        /* Modal simple pour l'astro */
+        /* MODIFICATION : Centrage du texte dans la liste de sélection */
+        select { 
+            width: 100%; 
+            padding: 10px; 
+            border-radius: 10px; 
+            border: 1px solid #ddd; 
+            margin: 10px 0; 
+            background: var(--card-bg); 
+            color: var(--text-main); 
+            text-align: center;       /* Centre le texte sur certains navigateurs */
+            text-align-last: center;  /* Force le centrage du texte sélectionné */
+        }
+        
         #horoscopeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: var(--card-bg); padding: 20px; border-radius: 20px; text-align: center; max-width: 280px; }
         .btn-close { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 15px; margin-top: 15px; cursor: pointer; }
@@ -103,6 +114,7 @@
         <div id="dicton-box" style="font-size: 0.8rem; font-style: italic; color: var(--dicton-color); padding: 10px;">"..."</div>
 
         <select id="city-select" onchange="updateWeather()">
+            <option value="49.01,4.07" selected>Plivot</option>
             <option value="48.79,3.54">Joiselle</option>
             <option value="48.95,4.36">Châlons</option>
             <option value="49.04,3.95">Épernay</option>
@@ -130,22 +142,19 @@
     </div>
 
 <script>
+    // [Le reste de votre script reste strictement identique]
     let globalSunData = { rise: 8, set: 18 };
-
     function toggleMenu() { document.getElementById('sideMenu').classList.toggle('open'); }
     function toggleFeature(id, checkbox) {
         const el = document.getElementById(id);
         if (el) { checkbox.checked ? el.classList.remove('hidden') : el.classList.add('hidden'); }
     }
-
-    // FONCTIONS ASTRO CORRIGÉES
     function openAstro() {
         document.getElementById('modal-title').innerText = document.getElementById('astro-name').innerText;
         document.getElementById('modal-text').innerText = "Bonne journée ! Les astres vous sont favorables aujourd'hui.";
         document.getElementById('horoscopeModal').style.display = 'flex';
     }
     function closeAstro() { document.getElementById('horoscopeModal').style.display = 'none'; }
-
     function applyThemeLogic() {
         const forceDark = document.getElementById('forceDarkCheck').checked;
         if (forceDark) {
@@ -155,13 +164,11 @@
             document.body.dataset.theme = (hour < globalSunData.rise || hour > globalSunData.set) ? "dark" : "light";
         }
     }
-
     async function updateWeather() {
         const [lat, lon] = document.getElementById('city-select').value.split(',');
         try {
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m&daily=sunrise,sunset,precipitation_sum,temperature_2m_min&air_quality=european_aqi&timezone=Europe/Paris`);
             const data = await res.json();
-            
             document.getElementById('temperature').innerText = Math.round(data.current.temperature_2m) + "°";
             document.getElementById('apparent').innerText = Math.round(data.current.apparent_temperature);
             document.getElementById('wind').innerText = Math.round(data.current.wind_speed_10m);
@@ -169,45 +176,33 @@
             document.getElementById('rain').innerText = data.daily.precipitation_sum[0];
             document.getElementById('sunrise').innerText = data.daily.sunrise[0].split('T')[1];
             document.getElementById('sunset').innerText = data.daily.sunset[0].split('T')[1];
-            
             globalSunData.rise = parseInt(data.daily.sunrise[0].split('T')[1]);
             globalSunData.set = parseInt(data.daily.sunset[0].split('T')[1]) + 12;
-
             const aqi = data.current.european_aqi || 20;
             document.getElementById('aqi-dot').style.background = aqi <= 20 ? "#2ecc71" : (aqi <= 40 ? "#f1c40f" : "#e67e22");
             document.getElementById('aqi-text').innerText = aqi <= 20 ? "Bon" : "Moyen";
             document.getElementById('frost-alert').style.display = data.daily.temperature_2m_min[0] <= 1 ? "block" : "none";
-            
             applyThemeLogic();
         } catch(e) { console.log("Erreur API"); }
     }
-
     function updateClock() {
         const now = new Date();
         const d = now.getDate(); const m = now.getMonth() + 1; const key = d + "-" + m;
         document.getElementById('current-date').innerText = now.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
         document.getElementById('current-time').innerText = now.toLocaleTimeString('fr-FR');
-        
-        // Saints
         if (typeof TOUS_LES_SAINTS !== 'undefined') {
             document.getElementById('saint-block').innerText = "✨ Bonne fête aux " + (TOUS_LES_SAINTS[key] || "du jour");
         }
-        
-        // Dictons
         if (typeof TOUS_LES_DICTONS !== 'undefined') {
             document.getElementById('dicton-box').innerText = `"${TOUS_LES_DICTONS[key] || TOUS_LES_DICTONS["m"+m]}"`;
         }
-
         const signs = [{n:"Capricorne",i:"♑",d:20},{n:"Verseau",i:"♒",d:19},{n:"Poissons",i:"♓",d:20},{n:"Bélier",i:"♈",d:20},{n:"Taureau",i:"♉",d:21},{n:"Gémeaux",i:"♊",d:21},{n:"Cancer",i:"♋",d:22},{n:"Lion",i:"♌",d:22},{n:"Vierge",i:"♍",d:23},{n:"Balance",i:"♎",d:23},{n:"Scorpion",i:"♏",d:22},{n:"Sagittaire",i:"♐",d:21}];
         const s = (now.getMonth()===0 && d<=20) ? signs[0] : (d<=signs[now.getMonth()].d ? signs[now.getMonth()] : signs[(now.getMonth()+1)%12]);
         document.getElementById('astro-icon').innerText = s.i; document.getElementById('astro-name').innerText = s.n;
-
         const lp = 2551443; const phase = ((now.getTime() - new Date(1970,0,7,20,35).getTime())/1000)%lp;
         document.getElementById('moon-phase').innerText = Math.floor(phase/(24*3600)) < 15 ? "Croissante" : "Décroissante";
-        
         if (!document.getElementById('forceDarkCheck').checked) { applyThemeLogic(); }
     }
-
     function updateSeason() {
         const m = new Date().getMonth()+1; const b = document.getElementById('season-badge');
         if(m>=3 && m<=5) { b.innerText="Printemps"; b.style.background="#2ecc71"; }
@@ -215,7 +210,6 @@
         else if(m>=9 && m<=11) { b.innerText="Automne"; b.style.background="#e67e22"; }
         else { b.innerText="Hiver"; b.style.background="#3498db"; }
     }
-
     const canvas = document.getElementById('weather-bg'); const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
     let parts = []; for(let i=0; i<40; i++) parts.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*2+1});
@@ -224,7 +218,6 @@
         parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill(); p.y += 0.4; if(p.y > canvas.height) p.y = 0; });
         requestAnimationFrame(draw);
     }
-
     setInterval(updateClock, 1000); updateClock(); updateWeather(); updateSeason(); draw();
 </script>
 </body>
