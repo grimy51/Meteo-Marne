@@ -12,13 +12,13 @@
         :root {
             --bg-color: #f0f4f8; --card-bg: #ffffff; --text-main: #2d3436;
             --accent: #0984e3; --date-color: #636e72; --saint-color: #e67e22;
-            --dicton-color: #6c5ce7; --astro-color: #9b59b6; --pill-bg: #f8f9fa;
+            --dicton-color: #6c5ce7; --pill-bg: #f8f9fa;
             --menu-bg: #ffffff;
         }
         [data-theme="dark"] {
             --bg-color: #1a1c1e; --card-bg: #2d3436; --text-main: #dfe6e9;
             --accent: #74b9ff; --date-color: #b2bec3; --saint-color: #fab1a0;
-            --dicton-color: #a29bfe; --astro-color: #d63031; --pill-bg: #3b3f41;
+            --dicton-color: #a29bfe; --pill-bg: #3b3f41;
             --menu-bg: #2d3436;
         }
         body { 
@@ -40,35 +40,25 @@
         }
         .card { background: var(--card-bg); width: 92%; max-width: 380px; padding: 20px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; position: relative; z-index: 10; transition: background 0.5s ease; }
         .season-badge { display: inline-block; padding: 4px 15px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; color: white; }
-        .astro-block { position: absolute; right: 20px; top: 25px; text-align: center; color: var(--astro-color); cursor: pointer; }
+        
+        .trend-block { position: absolute; right: 20px; top: 25px; text-align: center; color: var(--accent); }
         .temp { font-size: 4rem; font-weight: 800; color: var(--accent); line-height: 1; margin: 10px 0; }
         
-        /* ALERTE GELÉE AVEC ANIMATION */
         .frost-alert { 
-            display: none; 
-            background: #74b9ff; 
-            color: white; 
-            padding: 8px; 
-            border-radius: 12px; 
-            font-size: 0.75rem; 
-            font-weight: bold; 
-            margin: 10px 0; 
-            animation: pulse 2s infinite;
+            display: none; background: #74b9ff; color: white; padding: 8px; border-radius: 12px; 
+            font-size: 0.75rem; font-weight: bold; margin: 10px 0; animation: pulse 2s infinite;
         }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
-        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; border-top: 1px solid rgba(128,128,128,0.1); padding-top: 15px; }
+        .details-grid { 
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; 
+            margin-top: 15px; border-top: 1px solid rgba(128,128,128,0.1); padding-top: 15px; 
+        }
         .aqi-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
         
-        /* DESIGN SOLEIL PREMIUM */
         .sun-times { 
-            display: flex; 
-            justify-content: space-between; 
-            gap: 15px;
-            margin: 20px 0; 
-            padding: 15px; 
-            border-radius: 20px; 
-            background: linear-gradient(135deg, rgba(255, 165, 0, 0.1), rgba(108, 92, 231, 0.1));
+            display: flex; justify-content: space-between; gap: 15px; margin: 20px 0; padding: 15px; 
+            border-radius: 20px; background: linear-gradient(135deg, rgba(255, 165, 0, 0.1), rgba(108, 92, 231, 0.1));
             border: 1px solid rgba(128, 128, 128, 0.1);
         }
         .sun-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -85,9 +75,6 @@
             text-align: center; text-align-last: center; font-weight: bold;
         }
         
-        #horoscopeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 20px; text-align: center; max-width: 280px; }
-        .btn-close { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 15px; margin-top: 15px; cursor: pointer; }
         .dark-mode-opt { border-top: 1px solid rgba(128,128,128,0.2); margin-top: 10px; padding-top: 10px; font-weight: bold; color: var(--accent); }
     </style>
 </head>
@@ -102,32 +89,25 @@
         <hr style="opacity:0.2">
         <div style="text-align: left; line-height: 2.2;">
             <label><input type="checkbox" checked onchange="toggleFeature('season-badge', this)"> Saison</label><br>
-            <label><input type="checkbox" checked onchange="toggleFeature('astro-block', this)"> Astrologie</label><br>
+            <label><input type="checkbox" checked onchange="toggleFeature('trend-block', this)"> Tendance Météo</label><br>
             <label><input type="checkbox" checked onchange="toggleFeature('saint-block', this)"> Fêtes / Saints</label><br>
             <label><input type="checkbox" checked onchange="toggleFeature('dicton-box', this)"> Dictons</label><br>
             <label><input type="checkbox" checked onchange="toggleFeature('frost-alert', this)"> Alerte Gelée</label><br>
             <label><input type="checkbox" checked onchange="toggleFeature('sun-times', this)"> Lever / Coucher</label><br>
-            <label><input type="checkbox" checked onchange="toggleFeature('info-pill', this)"> Phase de Lune</label>
+            <label><input type="checkbox" checked onchange="toggleFeature('info-pill', this)"> Bandeau info</label>
             <div class="dark-mode-opt">
                 <label><input type="checkbox" id="forceDarkCheck" onchange="applyThemeLogic()"> Mode Sombre Forcé</label>
             </div>
         </div>
     </div>
 
-    <div id="horoscopeModal">
-        <div class="modal-content">
-            <h3 id="modal-title" style="color:var(--astro-color)"></h3>
-            <p id="modal-text" style="font-size:0.9rem"></p>
-            <button class="btn-close" onclick="closeAstro()">Fermer</button>
-        </div>
-    </div>
-
     <div class="card">
         <div id="season-badge" class="season-badge">...</div>
-        <div class="astro-block" id="astro-block" onclick="openAstro()">
-            <span style="font-size: 1.5rem;" id="astro-icon">--</span>
-            <div style="font-size: 0.6rem; font-weight: bold;" id="astro-name">--</div>
+        <div class="trend-block" id="trend-block">
+            <span style="font-size: 1.5rem;" id="trend-icon">☀️</span>
+            <div style="font-size: 0.6rem; font-weight: bold; text-transform: uppercase;" id="trend-text">Dégagé</div>
         </div>
+
         <div id="current-date" style="color: var(--date-color); font-size: 0.9rem;">--</div>
         <div id="current-time" style="font-weight: bold; font-size: 1.2rem;">00:00:00</div>
         
@@ -149,53 +129,51 @@
         <div style="font-size: 0.8rem; opacity: 0.8;">Ressenti : <span id="apparent">--</span>°</div>
 
         <div class="details-grid">
-            <div><small>VENT</small><br><strong>🚩 <span id="wind">--</span> km/h</strong></div>
-            <div><small>PLUIE</small><br><strong>🌧️ <span id="rain">--</span> mm</strong></div>
-            <div><small>HUMIDITÉ</small><br><strong>💧 <span id="hum">--</span> %</strong></div>
+            <div><small>VENT</small><br><strong>🚩 <span id="wind">--</span></strong></div>
+            <div><small>PLUIE</small><br><strong>🌧️ <span id="rain">--</span></strong></div>
+            <div><small>HUMIDITÉ</small><br><strong>💧 <span id="hum">--</span>%</strong></div>
             <div><small>AIR</small><br><span class="aqi-dot" id="aqi-dot"></span> <span id="aqi-text" style="font-weight:bold;">--</span></div>
+            <div><small>PRESSION</small><br><strong>⏲️ <span id="pres">--</span> <span id="pres-trend"></span></strong></div>
+            <div><small>LUNE</small><br><span id="moon-icon" style="font-size:0.8rem">🌑</span> <strong id="moon-phase">--</strong></div>
         </div>
 
         <div class="sun-times" id="sun-times">
             <div class="sun-item">
                 <span class="sun-label">Lever</span>
-                <span class="sun-icon">🌅</span>
+                <span class="sun-icon">☀️</span>
                 <span class="sun-value" id="sunrise">--:--</span>
             </div>
             <div style="width: 1px; background: rgba(128,128,128,0.2); margin: 5px 0;"></div>
             <div class="sun-item">
                 <span class="sun-label">Coucher</span>
-                <span class="sun-icon">🌇</span>
+                <span class="sun-icon">🌙</span>
                 <span class="sun-value" id="sunset">--:--</span>
             </div>
         </div>
 
         <div class="info-pill" id="info-pill">
-            <span id="moon-icon">🌑</span> Lune : <span id="moon-phase" style="font-weight:bold;">--</span>
+            Météo en direct pour la Marne
         </div>
     </div>
 
 <script>
-    let globalSunData = { rise: 8, set: 18 };
+    let sunRiseMinutes = 480;
+    let sunSetMinutes = 1080;
+
     function toggleMenu() { document.getElementById('sideMenu').classList.toggle('open'); }
     function toggleFeature(id, checkbox) {
         const el = document.getElementById(id);
         if (el) { checkbox.checked ? el.classList.remove('hidden') : el.classList.add('hidden'); }
     }
-    function openAstro() {
-        document.getElementById('modal-title').innerText = document.getElementById('astro-name').innerText;
-        document.getElementById('modal-text').innerText = "Bonne journée ! Les astres vous sont favorables aujourd'hui.";
-        document.getElementById('horoscopeModal').style.display = 'flex';
-    }
-    function closeAstro() { document.getElementById('horoscopeModal').style.display = 'none'; }
     
     function applyThemeLogic() {
-        const forceDark = document.getElementById('forceDarkCheck').checked;
-        if (forceDark) {
+        if (document.getElementById('forceDarkCheck').checked) {
             document.body.dataset.theme = "dark";
-        } else {
-            const hour = new Date().getHours();
-            document.body.dataset.theme = (hour < globalSunData.rise || hour > globalSunData.set) ? "dark" : "light";
+            return;
         }
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        document.body.dataset.theme = (currentMinutes < sunRiseMinutes || currentMinutes > sunSetMinutes) ? "dark" : "light";
     }
 
     async function updateWeather() {
@@ -203,37 +181,53 @@
         const frostDiv = document.getElementById('frost-alert');
         
         try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m&daily=sunrise,sunset,precipitation_sum,temperature_2m_min&air_quality=european_aqi&timezone=Europe/Paris`);
+            // Appel API avec pression actuelle ET historique horaire pour la tendance
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code,surface_pressure&hourly=surface_pressure&daily=sunrise,sunset,precipitation_sum&air_quality=european_aqi&timezone=Europe/Paris`);
             const data = await res.json();
             
-            const currentTemp = data.current.temperature_2m;
-            document.getElementById('temperature').innerText = Math.round(currentTemp) + "°";
+            document.getElementById('temperature').innerText = Math.round(data.current.temperature_2m) + "°";
             document.getElementById('apparent').innerText = Math.round(data.current.apparent_temperature);
-            document.getElementById('wind').innerText = Math.round(data.current.wind_speed_10m);
+            document.getElementById('wind').innerText = Math.round(data.current.wind_speed_10m) + " km/h";
             document.getElementById('hum').innerText = data.current.relative_humidity_2m;
-            document.getElementById('rain').innerText = data.daily.precipitation_sum[0];
-            document.getElementById('sunrise').innerText = data.daily.sunrise[0].split('T')[1];
-            document.getElementById('sunset').innerText = data.daily.sunset[0].split('T')[1];
+            document.getElementById('rain').innerText = data.daily.precipitation_sum[0] + " mm";
             
-            globalSunData.rise = parseInt(data.daily.sunrise[0].split('T')[1]);
-            globalSunData.set = parseInt(data.daily.sunset[0].split('T')[1]) + 12;
+            // Pression et Tendance
+            const currentPres = data.current.surface_pressure;
+            document.getElementById('pres').innerText = Math.round(currentPres) + " hPa";
+            
+            // Calcul tendance (comparaison avec il y a 3 heures)
+            const pastPres = data.hourly.surface_pressure[new Date().getHours() - 3] || currentPres;
+            const trendIcon = document.getElementById('pres-trend');
+            if (currentPres > pastPres + 0.5) trendIcon.innerText = "↑";
+            else if (currentPres < pastPres - 0.5) trendIcon.innerText = "↓";
+            else trendIcon.innerText = "→";
+            
+            const riseStr = data.daily.sunrise[0].split('T')[1];
+            const setStr = data.daily.sunset[0].split('T')[1];
+            document.getElementById('sunrise').innerText = riseStr;
+            document.getElementById('sunset').innerText = setStr;
+            
+            const r = riseStr.split(':'); const s = setStr.split(':');
+            sunRiseMinutes = parseInt(r[0]) * 60 + parseInt(r[1]);
+            sunSetMinutes = parseInt(s[0]) * 60 + parseInt(s[1]);
+
+            const code = data.current.weather_code;
+            let icon = "☀️"; let text = "Dégagé";
+            if(code >= 1 && code <= 3) { icon = "⛅"; text = "Nuageux"; }
+            else if(code >= 45 && code <= 48) { icon = "🌫️"; text = "Brouillard"; }
+            else if(code >= 51 && code <= 67) { icon = "🌧️"; text = "Pluie"; }
+            else if(code >= 71 && code <= 77) { icon = "❄️"; text = "Neige"; }
+            else if(code >= 80) { icon = "⛈️"; text = "Orageux"; }
+            document.getElementById('trend-icon').innerText = icon;
+            document.getElementById('trend-text').innerText = text;
 
             const aqi = data.current.european_aqi || 20;
             document.getElementById('aqi-dot').style.background = aqi <= 20 ? "#2ecc71" : (aqi <= 40 ? "#f1c40f" : "#e67e22");
             document.getElementById('aqi-text').innerText = aqi <= 20 ? "Bon" : "Moyen";
             
-            // CORRECTIF GELÉE TEMPS RÉEL
-            if (currentTemp <= 1) {
-                frostDiv.style.display = 'block';
-            } else {
-                frostDiv.style.display = 'none';
-            }
-            
+            if (data.current.temperature_2m <= 1) { frostDiv.style.display = 'block'; } else { frostDiv.style.display = 'none'; }
             applyThemeLogic();
-        } catch(e) { 
-            console.log("Erreur API");
-            frostDiv.style.display = 'none';
-        }
+        } catch(e) { console.log("Erreur API"); frostDiv.style.display = 'none'; }
     }
 
     function updateClock() {
@@ -241,18 +235,17 @@
         const d = now.getDate(); const m = now.getMonth() + 1; const key = d + "-" + m;
         document.getElementById('current-date').innerText = now.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
         document.getElementById('current-time').innerText = now.toLocaleTimeString('fr-FR');
+        
         if (typeof TOUS_LES_SAINTS !== 'undefined') {
             document.getElementById('saint-block').innerText = "✨ Bonne fête aux " + (TOUS_LES_SAINTS[key] || "du jour");
         }
         if (typeof TOUS_LES_DICTONS !== 'undefined') {
             document.getElementById('dicton-box').innerText = `"${TOUS_LES_DICTONS[key] || TOUS_LES_DICTONS["m"+m]}"`;
         }
-        const signs = [{n:"Capricorne",i:"♑",d:20},{n:"Verseau",i:"♒",d:19},{n:"Poissons",i:"♓",d:20},{n:"Bélier",i:"♈",d:20},{n:"Taureau",i:"♉",d:21},{n:"Gémeaux",i:"♊",d:21},{n:"Cancer",i:"♋",d:22},{n:"Lion",i:"♌",d:22},{n:"Vierge",i:"♍",d:23},{n:"Balance",i:"♎",d:23},{n:"Scorpion",i:"♏",d:22},{n:"Sagittaire",i:"♐",d:21}];
-        const s = (now.getMonth()===0 && d<=20) ? signs[0] : (d<=signs[now.getMonth()].d ? signs[now.getMonth()] : signs[(now.getMonth()+1)%12]);
-        document.getElementById('astro-icon').innerText = s.i; document.getElementById('astro-name').innerText = s.n;
+        
         const lp = 2551443; const phase = ((now.getTime() - new Date(1970,0,7,20,35).getTime())/1000)%lp;
-        document.getElementById('moon-phase').innerText = Math.floor(phase/(24*3600)) < 15 ? "Croissante" : "Décroissante";
-        if (!document.getElementById('forceDarkCheck').checked) { applyThemeLogic(); }
+        document.getElementById('moon-phase').innerText = Math.floor(phase/(24*3600)) < 15 ? "Croit" : "Décroit";
+        applyThemeLogic();
     }
 
     function updateSeason() {
@@ -271,7 +264,9 @@
         parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill(); p.y += 0.4; if(p.y > canvas.height) p.y = 0; });
         requestAnimationFrame(draw);
     }
-    setInterval(updateClock, 1000); updateClock(); updateWeather(); updateSeason(); draw();
+    
+    setInterval(updateClock, 1000); 
+    updateClock(); updateWeather(); updateSeason(); draw();
 </script>
 </body>
 </html>
