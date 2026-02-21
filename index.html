@@ -27,20 +27,43 @@
             overflow: hidden; position: relative; transition: background-color 0.8s ease, color 0.5s ease;
         }
         #weather-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        
+        /* BOUTONS DE CONTRÔLE */
+        .settings-trigger {
+            position: absolute; top: 20px; left: 20px; background: var(--card-bg); border: none; 
+            border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; z-index: 100; color: var(--text-main);
+        }
+        .fullscreen-trigger {
+            position: absolute; top: 20px; right: 20px; background: var(--card-bg); border: none; 
+            border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; z-index: 100; color: var(--text-main);
+        }
+
         .settings-menu {
             position: fixed; top: 0; left: -285px; width: 250px; height: 100%;
             background: var(--menu-bg); box-shadow: 5px 0 15px rgba(0,0,0,0.2); transition: left 0.3s ease;
             z-index: 200; padding: 20px; font-size: 0.9rem; overflow-y: auto;
         }
         .settings-menu.open { left: 0; }
-        .settings-trigger {
-            position: absolute; top: 20px; left: 20px; background: var(--card-bg); border: none; 
-            border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; z-index: 100; color: var(--text-main);
+
+        /* CARTE ASPECT INITIAL */
+        .card { 
+            background: var(--card-bg); 
+            width: 92%; 
+            max-width: 380px; 
+            max-height: 98vh; /* Empêche de déborder sur mobile */
+            padding: 20px; 
+            border-radius: 30px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+            text-align: center; 
+            position: relative; 
+            z-index: 10; 
+            transition: background 0.5s ease;
+            overflow-y: auto; /* Scroll interne si vraiment trop petit */
         }
-        .card { background: var(--card-bg); width: 92%; max-width: 380px; padding: 20px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; position: relative; z-index: 10; transition: background 0.5s ease; }
-        .season-badge { display: inline-block; padding: 4px 15px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; color: white; }
         
+        .season-badge { display: inline-block; padding: 4px 15px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; color: white; }
         .trend-block { position: absolute; right: 20px; top: 25px; text-align: center; color: var(--accent); }
         .temp { font-size: 4rem; font-weight: 800; color: var(--accent); line-height: 1; margin: 10px 0; }
         
@@ -74,7 +97,6 @@
             margin: 10px 0; background: var(--card-bg); color: var(--text-main); 
             text-align: center; text-align-last: center; font-weight: bold;
         }
-        
         .dark-mode-opt { border-top: 1px solid rgba(128,128,128,0.2); margin-top: 10px; padding-top: 10px; font-weight: bold; color: var(--accent); }
     </style>
 </head>
@@ -82,6 +104,7 @@
 
     <canvas id="weather-bg"></canvas>
     <button class="settings-trigger" onclick="toggleMenu()">⚙️</button>
+    <button class="fullscreen-trigger" onclick="toggleFullScreen()">⛶</button>
 
     <div class="settings-menu" id="sideMenu">
         <button onclick="toggleMenu()" style="float:right; border:none; background:none; font-size:1.5rem; color:var(--text-main)">×</button>
@@ -161,6 +184,15 @@
     let sunSetMinutes = 1080;
 
     function toggleMenu() { document.getElementById('sideMenu').classList.toggle('open'); }
+    
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) { document.exitFullscreen(); }
+        }
+    }
+
     function toggleFeature(id, checkbox) {
         const el = document.getElementById(id);
         if (el) { checkbox.checked ? el.classList.remove('hidden') : el.classList.add('hidden'); }
@@ -178,10 +210,7 @@
 
     async function updateWeather() {
         const [lat, lon] = document.getElementById('city-select').value.split(',');
-        const frostDiv = document.getElementById('frost-alert');
-        
         try {
-            // Appel API avec pression actuelle ET historique horaire pour la tendance
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code,surface_pressure&hourly=surface_pressure&daily=sunrise,sunset,precipitation_sum&air_quality=european_aqi&timezone=Europe/Paris`);
             const data = await res.json();
             
@@ -191,16 +220,10 @@
             document.getElementById('hum').innerText = data.current.relative_humidity_2m;
             document.getElementById('rain').innerText = data.daily.precipitation_sum[0] + " mm";
             
-            // Pression et Tendance
             const currentPres = data.current.surface_pressure;
             document.getElementById('pres').innerText = Math.round(currentPres) + " hPa";
-            
-            // Calcul tendance (comparaison avec il y a 3 heures)
             const pastPres = data.hourly.surface_pressure[new Date().getHours() - 3] || currentPres;
-            const trendIcon = document.getElementById('pres-trend');
-            if (currentPres > pastPres + 0.5) trendIcon.innerText = "↑";
-            else if (currentPres < pastPres - 0.5) trendIcon.innerText = "↓";
-            else trendIcon.innerText = "→";
+            document.getElementById('pres-trend').innerText = currentPres > pastPres + 0.5 ? "↑" : (currentPres < pastPres - 0.5 ? "↓" : "→");
             
             const riseStr = data.daily.sunrise[0].split('T')[1];
             const setStr = data.daily.sunset[0].split('T')[1];
@@ -225,9 +248,9 @@
             document.getElementById('aqi-dot').style.background = aqi <= 20 ? "#2ecc71" : (aqi <= 40 ? "#f1c40f" : "#e67e22");
             document.getElementById('aqi-text').innerText = aqi <= 20 ? "Bon" : "Moyen";
             
-            if (data.current.temperature_2m <= 1) { frostDiv.style.display = 'block'; } else { frostDiv.style.display = 'none'; }
+            document.getElementById('frost-alert').style.display = data.current.temperature_2m <= 1 ? 'block' : 'none';
             applyThemeLogic();
-        } catch(e) { console.log("Erreur API"); frostDiv.style.display = 'none'; }
+        } catch(e) { console.log("Erreur API"); }
     }
 
     function updateClock() {
@@ -257,8 +280,10 @@
     }
 
     const canvas = document.getElementById('weather-bg'); const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    let parts = []; for(let i=0; i<40; i++) parts.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*2+1});
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    let parts = []; for(let i=0; i<40; i++) parts.push({x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight, s:Math.random()*2+1});
     function draw() {
         ctx.clearRect(0,0,canvas.width, canvas.height); ctx.fillStyle = "rgba(100,150,255,0.15)";
         parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill(); p.y += 0.4; if(p.y > canvas.height) p.y = 0; });
