@@ -91,14 +91,24 @@
             display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; 
             margin-top: 15px; border-top: 1px solid rgba(128,128,128,0.1); padding-top: 15px; 
         }
+        
+        /* STYLE AVEC DÉGRADÉ RÉINTÉGRÉ */
+        .sun-times-style { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+            padding: 10px; border-radius: 20px; 
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.1), rgba(108, 92, 231, 0.1));
+            border: 1px solid rgba(128, 128, 128, 0.1);
+        }
+        
+        .details-grid > div small { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--date-color); }
+        .details-grid > div strong { font-size: 0.9rem; color: var(--text-main); }
+
         .aqi-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
         
         .sun-times { 
-            display: flex; justify-content: space-between; gap: 15px; margin: 20px 0; padding: 15px; 
-            border-radius: 20px; background: linear-gradient(135deg, rgba(255, 165, 0, 0.1), rgba(108, 92, 231, 0.1));
-            border: 1px solid rgba(128, 128, 128, 0.1);
+            display: flex; justify-content: space-between; gap: 15px; margin: 20px 0;
         }
-        .sun-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .sun-item { flex: 1; } 
         .sun-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--date-color); }
         .sun-value { font-size: 1rem; font-weight: bold; color: var(--text-main); }
         .sun-icon { font-size: 1.4rem; }
@@ -132,7 +142,8 @@
             <label><input type="checkbox" checked onchange="toggleFeature('dicton-box', this)"> Dictons</label><br>
             <label><input type="checkbox" checked onchange="toggleFeature('frost-alert', this)"> Alerte Gelée</label><br>
             <label><input type="checkbox" checked onchange="toggleFeature('sun-times', this)"> Lever / Coucher</label><br>
-            <label><input type="checkbox" checked onchange="toggleFeature('info-pill', this)"> Bandeau info</label>
+            <label><input type="checkbox" checked onchange="toggleFeature('info-pill', this)"> Bandeau info</label><br>
+            <label><input type="checkbox" checked onchange="toggleFeature('uv-box', this)"> Indice UV</label>
             <div class="dark-mode-opt">
                 <label><input type="checkbox" id="forceDarkCheck" onchange="applyThemeLogic()"> Mode Sombre Forcé</label>
             </div>
@@ -153,8 +164,8 @@
         <div id="dicton-box" style="font-size: 0.8rem; font-style: italic; color: var(--dicton-color); padding: 10px;">"..."</div>
 
         <select id="city-select" onchange="updateWeather()">
-            <option value="49.01,4.07" selected>Plivot</option>
-            <option value="49.07,3.63">Dormans</option>
+            <option value="49.01,4.07">Plivot</option>
+            <option value="49.07,3.63" selected >Dormans</option>
             <option value="48.79,3.54">Joiselle</option>
             <option value="48.95,4.36">Châlons</option>
             <option value="49.04,3.95">Épernay</option>
@@ -167,22 +178,23 @@
         <div style="font-size: 0.8rem; opacity: 0.8;">Ressenti : <span id="apparent">--</span>°</div>
 
         <div class="details-grid">
-            <div><small>VENT</small><br><strong>🚩 <span id="wind">--</span></strong></div>
-            <div><small>PLUIE</small><br><strong>🌧️ <span id="rain">--</span></strong></div>
-            <div><small>HUMIDITÉ</small><br><strong>💧 <span id="hum">--</span>%</strong></div>
-            <div><small>AIR</small><br><span class="aqi-dot" id="aqi-dot"></span> <span id="aqi-text" style="font-weight:bold;">--</span></div>
-            <div><small>PRESSION</small><br><strong>⏲️ <span id="pres">--</span> <span id="pres-trend"></span></strong></div>
-            <div><small>LUNE</small><br><span id="moon-icon" style="font-size:0.8rem">🌑</span> <strong id="moon-phase">--</strong></div>
+            <div class="sun-times-style"><small>VENT</small><br><strong>🚩 <span id="wind">--</span></strong></div>
+            <div class="sun-times-style"><small>PLUIE</small><br><strong>🌧️ <span id="rain">--</span></strong></div>
+            <div class="sun-times-style"><small>HUMIDITÉ</small><br><strong>💧 <span id="hum">--</span>%</strong></div>
+            <div class="sun-times-style"><small>AIR</small><br><span class="aqi-dot" id="aqi-dot"></span> <span id="aqi-text" style="font-weight:bold;">--</span></div>
+            <div class="sun-times-style"><small>PRESSION</small><br><strong>⏲️ <span id="pres">--</span> <span id="pres-trend"></span></strong></div>
+            <div class="sun-times-style"><small>LUNE</small><br><span id="moon-icon" style="font-size:0.8rem">🌑</span> <strong id="moon-phase">--</strong></div>
+            <div id="uv-box" class="sun-times-style"><small>UV</small><br><strong>☀️ <span id="uv">--</span></strong></div>
         </div>
 
         <div class="sun-times" id="sun-times">
-            <div class="sun-item">
+            <div class="sun-item sun-times-style">
                 <span class="sun-label">Lever</span>
                 <span class="sun-icon">☀️</span>
                 <span class="sun-value" id="sunrise">--:--</span>
             </div>
             <div style="width: 1px; background: rgba(128,128,128,0.2); margin: 5px 0;"></div>
-            <div class="sun-item">
+            <div class="sun-item sun-times-style">
                 <span class="sun-label">Coucher</span>
                 <span class="sun-icon">🌙</span>
                 <span class="sun-value" id="sunset">--:--</span>
@@ -226,7 +238,7 @@
     async function updateWeather() {
         const [lat, lon] = document.getElementById('city-select').value.split(',');
         try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code,pressure_msl&hourly=pressure_msl&daily=sunrise,sunset,precipitation_sum&air_quality=european_aqi&timezone=Europe/Paris`);
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code,pressure_msl&hourly=pressure_msl&daily=sunrise,sunset,precipitation_sum,uv_index_max&air_quality=european_aqi&timezone=Europe/Paris`);
             const data = await res.json();
             
             document.getElementById('temperature').innerText = Math.round(data.current.temperature_2m) + "°";
@@ -234,9 +246,9 @@
             document.getElementById('wind').innerText = Math.round(data.current.wind_speed_10m) + " km/h";
             document.getElementById('hum').innerText = data.current.relative_humidity_2m;
             document.getElementById('rain').innerText = data.daily.precipitation_sum[0] + " mm";
+            document.getElementById('uv').innerText = data.daily.uv_index_max[0];
             
             const currentPres = data.current.pressure_msl;
-            // Affiche la pression avec une décimale
             document.getElementById('pres').innerText = currentPres.toFixed(1) + " hPa";
             
             const hour = new Date().getHours();
@@ -265,8 +277,9 @@
             document.getElementById('trend-text').innerText = text;
 
             const aqi = data.current.european_aqi || 20;
+            let aqiLabel = aqi <= 20 ? "Bon" : (aqi <= 40 ? "Moyen" : "Mauvais");
             document.getElementById('aqi-dot').style.background = aqi <= 20 ? "#2ecc71" : (aqi <= 40 ? "#f1c40f" : "#e67e22");
-            document.getElementById('aqi-text').innerText = aqi <= 20 ? "Bon" : "Moyen";
+            document.getElementById('aqi-text').innerText = `${aqi} (${aqiLabel})`;
             
             document.getElementById('frost-alert').style.display = data.current.temperature_2m <= 1 ? 'block' : 'none';
             applyThemeLogic();
@@ -286,8 +299,15 @@
             document.getElementById('dicton-box').innerText = `"${TOUS_LES_DICTONS[key] || TOUS_LES_DICTONS["m"+m]}"`;
         }
         
-        const lp = 2551443; const phase = ((now.getTime() - new Date(1970,0,7,20,35).getTime())/1000)%lp;
-        document.getElementById('moon-phase').innerText = Math.floor(phase/(24*3600)) < 15 ? "Croit" : "Décroit";
+        const lp = 2551443; 
+        const phaseSeconds = ((now.getTime() - new Date(1970,0,7,20,35).getTime())/1000)%lp;
+        const daysIntoCycle = phaseSeconds / (24*3600);
+        const moonIcons = ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"];
+        const index = Math.floor(daysIntoCycle / (29.53 / 8));
+        
+        document.getElementById('moon-icon').innerText = moonIcons[index % 8];
+        document.getElementById('moon-phase').innerText = daysIntoCycle < 14.76 ? "Croissante" : "Décroissante";
+        
         applyThemeLogic();
     }
 
