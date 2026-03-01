@@ -15,7 +15,6 @@
     <script src="dictons.js"></script>
     
     <style>
-        /* Tes styles originaux inchangés */
         :root {
             --bg-color: #f0f4f8; --card-bg: #ffffff; --text-main: #2d3436;
             --accent: #0984e3; --date-color: #636e72; --saint-color: #e67e22;
@@ -34,10 +33,9 @@
             overflow: hidden; position: relative; transition: background-color 0.8s ease, color 0.5s ease;
         }
         
-        /* ASTUCE POUR L'ICÔNE SI TU L'AFFICHES DANS LE MENU */
         .app-icon-preview {
             width: 80px; height: 80px;
-            border-radius: 50%; /* Rend l'image ronde même si le fond est noir */
+            border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--accent);
             margin: 10px auto;
@@ -197,7 +195,6 @@
     </div>
 
 <script>
-    // Scripts inchangés pour préserver tes fonctionnalités
     let sunRiseMinutes = 480;
     let sunSetMinutes = 1080;
 
@@ -229,7 +226,7 @@
     async function updateWeather() {
         const [lat, lon] = document.getElementById('city-select').value.split(',');
         try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code,surface_pressure&hourly=surface_pressure&daily=sunrise,sunset,precipitation_sum&air_quality=european_aqi&timezone=Europe/Paris`);
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code,pressure_msl&hourly=pressure_msl&daily=sunrise,sunset,precipitation_sum&air_quality=european_aqi&timezone=Europe/Paris`);
             const data = await res.json();
             
             document.getElementById('temperature').innerText = Math.round(data.current.temperature_2m) + "°";
@@ -238,9 +235,14 @@
             document.getElementById('hum').innerText = data.current.relative_humidity_2m;
             document.getElementById('rain').innerText = data.daily.precipitation_sum[0] + " mm";
             
-            const currentPres = data.current.surface_pressure;
-            document.getElementById('pres').innerText = Math.round(currentPres) + " hPa";
-            const pastPres = data.hourly.surface_pressure[new Date().getHours() - 3] || currentPres;
+            const currentPres = data.current.pressure_msl;
+            // Affiche la pression avec une décimale
+            document.getElementById('pres').innerText = currentPres.toFixed(1) + " hPa";
+            
+            const hour = new Date().getHours();
+            const pastIndex = Math.max(0, hour - 3);
+            const pastPres = data.hourly.pressure_msl[pastIndex] || currentPres;
+            
             document.getElementById('pres-trend').innerText = currentPres > pastPres + 0.5 ? "↑" : (currentPres < pastPres - 0.5 ? "↓" : "→");
             
             const riseStr = data.daily.sunrise[0].split('T')[1];
@@ -290,11 +292,20 @@
     }
 
     function updateSeason() {
-        const m = new Date().getMonth()+1; const b = document.getElementById('season-badge');
-        if(m>=3 && m<=5) { b.innerText="Printemps"; b.style.background="#2ecc71"; }
-        else if(m>=6 && m<=8) { b.innerText="Été"; b.style.background="#f1c40f"; }
-        else if(m>=9 && m<=11) { b.innerText="Automne"; b.style.background="#e67e22"; }
-        else { b.innerText="Hiver"; b.style.background="#3498db"; }
+        const now = new Date();
+        const m = now.getMonth() + 1;
+        const d = now.getDate();
+        const b = document.getElementById('season-badge');
+
+        if ((m === 3 && d >= 20) || (m > 3 && m < 6) || (m === 6 && d < 21)) {
+            b.innerText = "Printemps"; b.style.background = "#2ecc71";
+        } else if ((m === 6 && d >= 21) || (m > 6 && m < 9) || (m === 9 && d < 22)) {
+            b.innerText = "Été"; b.style.background = "#f1c40f";
+        } else if ((m === 9 && d >= 22) || (m > 9 && m < 12) || (m === 12 && d < 21)) {
+            b.innerText = "Automne"; b.style.background = "#e67e22";
+        } else {
+            b.innerText = "Hiver"; b.style.background = "#3498db";
+        }
     }
 
     const canvas = document.getElementById('weather-bg'); const ctx = canvas.getContext('2d');
