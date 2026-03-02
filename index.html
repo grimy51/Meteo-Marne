@@ -92,7 +92,6 @@
             margin-top: 15px; border-top: 1px solid rgba(128,128,128,0.1); padding-top: 15px; 
         }
         
-        /* STYLE AVEC DÉGRADÉ RÉINTÉGRÉ */
         .sun-times-style { 
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
             padding: 10px; border-radius: 20px; 
@@ -100,8 +99,13 @@
             border: 1px solid rgba(128, 128, 128, 0.1);
         }
         
-        .details-grid > div small { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--date-color); }
-        .details-grid > div strong { font-size: 0.9rem; color: var(--text-main); }
+        .fishing-link {
+            text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.2s, background 0.2s;
+        }
+        .fishing-link:hover { background: rgba(128,128,128,0.15); transform: scale(1.02); }
+
+        .details-grid > div small, .fishing-link small { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--date-color); }
+        .details-grid > div strong, .fishing-link strong { font-size: 0.9rem; color: var(--text-main); }
 
         .aqi-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
         
@@ -164,8 +168,8 @@
         <div id="dicton-box" style="font-size: 0.8rem; font-style: italic; color: var(--dicton-color); padding: 10px;">"..."</div>
 
         <select id="city-select" onchange="updateWeather()">
-            <option value="49.01,4.07">Plivot</option>
-            <option value="49.07,3.63" selected >Dormans</option>
+            <option value="49.01,4.07" selected>Plivot</option>
+            <option value="49.07,3.63">Dormans</option>
             <option value="48.79,3.54">Joiselle</option>
             <option value="48.95,4.36">Châlons</option>
             <option value="49.04,3.95">Épernay</option>
@@ -185,6 +189,7 @@
             <div class="sun-times-style"><small>PRESSION</small><br><strong>⏲️ <span id="pres">--</span> <span id="pres-trend"></span></strong></div>
             <div class="sun-times-style"><small>LUNE</small><br><span id="moon-icon" style="font-size:0.8rem">🌑</span> <strong id="moon-phase">--</strong></div>
             <div id="uv-box" class="sun-times-style"><small>UV</small><br><strong>☀️ <span id="uv">--</span></strong></div>
+            <a href="peche.html" class="sun-times-style fishing-link"><small>PÊCHE</small><br><strong>🎣 <span id="fishing-index">--</span>%</strong></a>
         </div>
 
         <div class="sun-times" id="sun-times">
@@ -235,6 +240,37 @@
         document.body.dataset.theme = (currentMinutes < sunRiseMinutes || currentMinutes > sunSetMinutes) ? "dark" : "light";
     }
 
+    // FORMULE AMÉLIORÉE (Pondérée)
+    function calculateFishingScore(temp, wind, rain, code) {
+        const now = new Date();
+        const hour = now.getHours();
+        
+        // Base de départ modeste
+        let score = 40; 
+        
+        // 1. Facteur Météo (Impact majeur)
+        if (code >= 0 && code <= 3) score += 20;      // Temps clair : bonus
+        else if (code >= 80) score -= 25;             // Orage : forte pénalité
+        else if (code >= 51 && code <= 67) score -= 10; // Pluie : pénalité modérée
+        
+        // 2. Vent (Le vent fort casse la pêche)
+        if (wind > 20) score -= 15;
+        else if (wind > 10) score -= 5;
+        
+        // 3. Facteur Lunaire (Impact mineur)
+        const lp = 2551443; 
+        const phaseSeconds = ((now.getTime() - new Date(1970,0,7,20,35).getTime())/1000)%lp;
+        const moonAge = (phaseSeconds / (24*3600)) % 29.53;
+        // Pleine (14-15) ou Nouvelle (0-1 / 28-29)
+        if (moonAge < 2 || (moonAge > 13 && moonAge < 16) || moonAge > 28) score += 10;
+
+        // 4. Facteur Horaire (Impact mineur)
+        if ((hour >= 5 && hour <= 9) || (hour >= 18 && hour <= 22)) score += 10;
+
+        // Limites strictes
+        return Math.min(100, Math.max(10, score));
+    }
+
     async function updateWeather() {
         const [lat, lon] = document.getElementById('city-select').value.split(',');
         try {
@@ -247,6 +283,9 @@
             document.getElementById('hum').innerText = data.current.relative_humidity_2m;
             document.getElementById('rain').innerText = data.daily.precipitation_sum[0] + " mm";
             document.getElementById('uv').innerText = data.daily.uv_index_max[0];
+            
+            const fishingScore = calculateFishingScore(data.current.temperature_2m, data.current.wind_speed_10m, data.daily.precipitation_sum[0], data.current.weather_code);
+            document.getElementById('fishing-index').innerText = fishingScore;
             
             const currentPres = data.current.pressure_msl;
             document.getElementById('pres').innerText = currentPres.toFixed(1) + " hPa";

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Indice de Pêche</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8; --card-bg: #ffffff; --text-main: #2d3436;
+            --accent: #0984e3; --date-color: #636e72; --pill-bg: #f8f9fa;
+            --menu-bg: #ffffff;
+        }
+        [data-theme="dark"] {
+            --bg-color: #1a1c1e; --card-bg: #2d3436; --text-main: #dfe6e9;
+            --accent: #74b9ff; --date-color: #b2bec3; --pill-bg: #3b3f41;
+            --menu-bg: #2d3436;
+        }
+        body { 
+            font-family: -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-main);
+            margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            overflow: hidden; position: relative; transition: background-color 0.8s ease, color 0.5s ease;
+        }
+        
+        #weather-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+
+        .card { 
+            background: var(--card-bg); width: 92%; max-width: 380px; padding: 20px; 
+            border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+            text-align: center; position: relative; z-index: 10; transition: background 0.5s ease;
+        }
+
+        #home-icon { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; cursor: pointer; }
+        #settings-icon { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; cursor: pointer; }
+
+        .location-info { margin: 20px 0; color: var(--accent); font-weight: bold; font-size: 0.8rem; }
+        .hourly-section { margin-top: 20px; background: var(--pill-bg); padding: 15px; border-radius: 20px; }
+        input[type=range] { width: 100%; accent-color: var(--accent); }
+        
+        .container { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+        
+        .card-item { 
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.1), rgba(108, 92, 231, 0.1));
+            border: 1px solid rgba(128, 128, 128, 0.1);
+            padding: 15px; border-radius: 20px; width: 90px; 
+        }
+        
+        .score { font-size: 1.2rem; font-weight: 800; margin: 5px 0; }
+        .icon { font-size: 1.5rem; }
+        .status-label { font-size: 0.7rem; color: var(--date-color); }
+
+        select, button { 
+            width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; 
+            margin: 10px 0; background: var(--card-bg); color: var(--text-main); cursor: pointer;
+        }
+        button { background: var(--accent); color: white; border: none; font-weight: bold; }
+        #settings-panel { display: none; padding-top: 20px; border-top: 1px solid #ccc; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <canvas id="weather-bg"></canvas>
+
+    <div class="card">
+        <div id="home-icon" onclick="window.location.href='index.html'">🏠</div>
+        <div id="settings-icon" onclick="toggleSettings()">⚙️</div>
+
+        <h2 style="margin-top:40px; color:var(--accent);">Indice Pêche</h2>
+
+        <div id="settings-panel">
+            <select id="city-select" onchange="updateByCity()">
+                <option value="Épernay" data-lon="3.96">Épernay</option>
+                <option value="Dormans" data-lon="3.64">Dormans</option>
+                <option value="Plivot" data-lon="4.04">Plivot</option>
+                <option value="Sézanne" data-lon="3.72">Sézanne</option>
+                <option value="Reims" data-lon="4.03">Reims</option>
+                <option value="Esternay" data-lon="3.56">Esternay</option>
+                <option value="Saint-Thiebault" data-lon="5.37">Saint-Thiebault</option>
+                <option value="Paris" data-lon="2.35">Paris</option>
+            </select>
+            <button onclick="resetToAuto()">Position Auto</button>
+        </div>
+
+        <div id="location" class="location-info">Recherche...</div>
+        
+        <div class="hourly-section" id="hourly-section" style="display:none;">
+            <label id="hour-label" style="font-size:0.8rem;">Heure : --:00</label>
+            <input type="range" id="hour-slider" min="0" max="23" oninput="updateHourlyScore()">
+        </div>
+
+        <div class="container" id="forecast-container"></div>
+    </div>
+
+<script>
+    let sunRiseMinutes = 360; 
+    let sunSetMinutes = 1080;
+
+    function applyThemeLogic() {
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        document.documentElement.dataset.theme = (currentMinutes < sunRiseMinutes || currentMinutes > sunSetMinutes) ? "dark" : "light";
+    }
+
+    const canvas = document.getElementById('weather-bg'); 
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    let parts = []; for(let i=0; i<40; i++) parts.push({x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight, s:Math.random()*2+1});
+    function draw() {
+        ctx.clearRect(0,0,canvas.width, canvas.height); 
+        ctx.fillStyle = "rgba(100,150,255,0.15)";
+        parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill(); p.y += 0.4; if(p.y > canvas.height) p.y = 0; });
+        requestAnimationFrame(draw);
+    }
+    draw();
+
+    let currentLon = 3.96;
+
+    function initSlider() {
+        const slider = document.getElementById('hour-slider');
+        slider.value = new Date().getHours();
+        updateHourlyScore();
+    }
+
+    function getHourlyScore(date, hour, lon) {
+        const referenceDate = new Date("2000-01-06T18:14:00Z").getTime();
+        const synodicMonth = 29.53058867 * 86400000;
+        const phase = ((date.getTime() - referenceDate) % synodicMonth) / synodicMonth;
+        const moonInfluence = 1 - Math.abs(phase - 0.5) * 2; 
+        const solarActivity = Math.pow(Math.cos((hour - 6) * Math.PI / 12), 2);
+        const lunarTransit = Math.pow(Math.cos((hour + (lon / 15)) * Math.PI / 6), 2);
+        return Math.round(((moonInfluence * 0.5) + (solarActivity * 0.3) + (lunarTransit * 0.2)) * 100);
+    }
+
+    function getLabel(score) {
+        if (score > 70) return "Idéal";
+        if (score > 50) return "Correct";
+        return "Difficile";
+    }
+
+    function updateHourlyScore() {
+        const hour = parseInt(document.getElementById('hour-slider').value);
+        document.getElementById('hour-label').innerText = "Heure : " + hour + "h00";
+        const cards = document.querySelectorAll('.card-item');
+        cards.forEach((card, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() + i); 
+            const score = getHourlyScore(d, hour, currentLon);
+            card.querySelector('.score').innerText = score + "%";
+            card.querySelector('.status-label').innerText = getLabel(score);
+            card.querySelector('.icon').innerText = score > 70 ? "🐟✨" : (score > 50 ? "🐟" : "💤");
+        });
+    }
+
+    function toggleSettings() {
+        const panel = document.getElementById('settings-panel');
+        panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function renderForecast(displayInfo, lon) {
+        currentLon = lon;
+        const container = document.getElementById('forecast-container');
+        document.getElementById('location').innerText = displayInfo;
+        document.getElementById('hourly-section').style.display = 'block';
+        initSlider(); 
+        const days = ["Auj.", "Dem.", "Après", "J+3"]; // Mise à jour pour 4 jours
+        container.innerHTML = ''; 
+        for (let i = 0; i < 4; i++) { // Boucle augmentée à 4
+            const card = document.createElement('div');
+            card.className = 'card-item';
+            card.innerHTML = `<div style="font-size:0.7rem;">${days[i]}</div><div class="icon"></div><div class="score"></div><div class="status-label"></div>`;
+            container.appendChild(card);
+        }
+        updateHourlyScore();
+    }
+
+    function updateByCity() {
+        const select = document.getElementById('city-select');
+        renderForecast("Prévisions : " + select.value, parseFloat(select.options[select.selectedIndex].getAttribute('data-lon')));
+        toggleSettings();
+    }
+
+    function resetToAuto() { toggleSettings(); initApp(); }
+
+    function initApp() {
+        applyThemeLogic();
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude.toFixed(2);
+                    const lon = pos.coords.longitude.toFixed(2);
+                    renderForecast(`Lat: ${lat}°N, Lon: ${lon}°E`, pos.coords.longitude);
+                },
+                (err) => renderForecast("Épernay (Défaut)", 3.96)
+            );
+        } else { renderForecast("Épernay (Défaut)", 3.96); }
+    }
+    initApp();
+</script>
+</body>
+</html>
